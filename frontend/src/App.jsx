@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './components/AuthGuard'
 import AuthModal from './components/AuthModal'
 import UploadWizard from './components/UploadWizard'
 import DatasetSwitcher from './components/DatasetSwitcher'
+import OnboardingModal from './components/OnboardingModal'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -32,20 +33,14 @@ const NAV_ITEMS = [
   { id: 'basket', label: 'Basket Affinity', icon: HiLink },
 ]
 
-// Channel mapping for Indian perspective
-const CHANNEL_LABEL_MAP = {
-  'Uber Eats': 'Swiggy',
-  'DoorDash': 'Zomato',
-  'Square Online': 'Personal Delivery',
-  'Register': 'Register',
-}
-
 function MainDashboard() {
   const { user, token, signOut } = useAuth()
   const [activePage, setActivePage] = useState('dashboard')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [uploadWizardOpen, setUploadWizardOpen] = useState(false)
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
+  const [profile, setProfile] = useState(null)
   const [activeDatasetId, setActiveDatasetId] = useState('default')
 
   const [filters, setFilters] = useState({
@@ -59,6 +54,24 @@ function MainDashboard() {
     channels: [],
     date_range: { min: '', max: '' },
   })
+
+  // Load profile for authenticated user
+  const loadProfile = useCallback(() => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${API_BASE}/profile`, { headers })
+      .then(r => r.json())
+      .then(data => {
+        setProfile(data)
+        if (user && !data.has_completed_onboarding) {
+          setOnboardingOpen(true)
+        }
+      })
+      .catch(console.error)
+  }, [user, token])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   // Load filter options on mount / token change / dataset change
   const loadFilters = useCallback(() => {
@@ -85,6 +98,8 @@ function MainDashboard() {
     const qs = params.toString()
     return qs ? `?${qs}` : ''
   }, [filters])
+
+  const hasNoData = Boolean(user && filterOptions.categories.length === 0)
 
   return (
     <div className="app-layout">
@@ -173,7 +188,11 @@ function MainDashboard() {
               {activePage === 'basket' && <><span className="highlight">Basket</span> Affinity</>}
             </h1>
             <p className="page-subtitle">
-              TK Korean Restaurant • Mumbai, India • Jun–Dec 2023
+              {profile?.restaurant_name || (user ? 'My Restaurant' : 'TK Korean Restaurant')}
+              {profile?.city ? ` • ${profile.city}` : (user ? '' : ' • Mumbai, India')}
+              {filterOptions.date_range.min && filterOptions.date_range.max
+                ? ` • ${filterOptions.date_range.min} to ${filterOptions.date_range.max}`
+                : (user ? '' : ' • Jun–Dec 2023')}
             </p>
           </div>
 
@@ -223,7 +242,7 @@ function MainDashboard() {
                 ))}
             </select>
 
-            {/* Channel Filter (mapped to Swiggy/Zomato) */}
+            {/* Channel Filter */}
             <select
               className="filter-select"
               value={filters.channel}
@@ -231,9 +250,7 @@ function MainDashboard() {
             >
               <option value="">All Channels</option>
               {filterOptions.channels.map(c => (
-                <option key={c} value={c}>
-                  {CHANNEL_LABEL_MAP[c] || c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
 
@@ -259,31 +276,48 @@ function MainDashboard() {
         </header>
 
         {/* Page Content */}
-        {activePage === 'dashboard' && (
-          <DashboardPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'items' && (
-          <ItemsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'forecast' && (
-          <ForecastPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'insights' && (
-          <InsightsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'alerts' && (
-          <AlertsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'menu-matrix' && (
-          <MenuMatrixPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'channels' && (
-          <ChannelsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-        )}
-        {activePage === 'basket' && (
-          <BasketPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+        {hasNoData ? (
+          <EmptyDatasetPrompt onUpload={() => setUploadWizardOpen(true)} />
+        ) : (
+          <>
+            {activePage === 'dashboard' && (
+              <DashboardPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'items' && (
+              <ItemsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'forecast' && (
+              <ForecastPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'insights' && (
+              <InsightsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'alerts' && (
+              <AlertsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'menu-matrix' && (
+              <MenuMatrixPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'channels' && (
+              <ChannelsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+            {activePage === 'basket' && (
+              <BasketPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+            )}
+          </>
         )}
       </main>
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+        apiBase={API_BASE}
+        onComplete={(p) => {
+          setProfile(p)
+          setUploadWizardOpen(true)
+        }}
+      />
 
       {/* Auth Modal */}
       <AuthModal
@@ -302,6 +336,64 @@ function MainDashboard() {
           setActiveDatasetId('custom_' + Date.now())
         }}
       />
+    </div>
+  )
+}
+
+function EmptyDatasetPrompt({ onUpload }) {
+  return (
+    <div
+      className="glass-card animate-fade-in"
+      style={{
+        textAlign: 'center',
+        padding: '48px 24px',
+        maxWidth: 600,
+        margin: '40px auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 16,
+      }}
+    >
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          background: 'rgba(245, 158, 11, 0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 32,
+        }}
+      >
+        📊
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700 }}>No Dataset Uploaded Yet</h2>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 450 }}>
+        Upload your restaurant's POS sales dataset (CSV or Excel) to generate custom demand forecasts, automated insights, menu engineering matrices, and basket affinity analysis.
+      </p>
+      <button
+        onClick={onUpload}
+        style={{
+          padding: '12px 24px',
+          borderRadius: 'var(--radius-sm)',
+          background: 'var(--gradient-warm)',
+          color: '#fff',
+          fontWeight: 700,
+          fontSize: 14,
+          border: 'none',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          boxShadow: 'var(--shadow-glow)',
+          marginTop: 8,
+        }}
+      >
+        <HiUpload size={18} />
+        <span>Upload POS Dataset</span>
+      </button>
     </div>
   )
 }

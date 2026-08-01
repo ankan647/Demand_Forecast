@@ -1,6 +1,84 @@
 import { useState } from 'react'
 import { HiDownload, HiDocumentReport, HiPhotograph } from 'react-icons/hi'
 
+const exportSvgToPng = (containerElement, filename) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const svgElement = containerElement.querySelector('svg')
+      if (!svgElement) {
+        throw new Error('No chart SVG element found to export.')
+      }
+
+      const rect = svgElement.getBoundingClientRect()
+      const width = rect.width || 800
+      const height = rect.height || 400
+
+      const clonedSvg = svgElement.cloneNode(true)
+      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+      clonedSvg.setAttribute('width', width)
+      clonedSvg.setAttribute('height', height)
+      clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+
+      const sourceElements = svgElement.querySelectorAll('*')
+      const targetElements = clonedSvg.querySelectorAll('*')
+      for (let i = 0; i < sourceElements.length; i++) {
+        const computed = window.getComputedStyle(sourceElements[i])
+        const targetStyle = targetElements[i].style
+        targetStyle.fill = computed.fill
+        targetStyle.stroke = computed.stroke
+        targetStyle.fontFamily = computed.fontFamily || 'Inter, sans-serif'
+        targetStyle.fontSize = computed.fontSize
+        targetStyle.fontWeight = computed.fontWeight
+        targetStyle.opacity = computed.opacity
+      }
+
+      const svgString = new XMLSerializer().serializeToString(clonedSvg)
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+      const url = URL.createObjectURL(svgBlob)
+
+      const img = new Image()
+      img.onload = () => {
+        const scale = 2
+        const canvas = document.createElement('canvas')
+        canvas.width = width * scale
+        canvas.height = height * scale
+        const ctx = canvas.getContext('2d')
+        ctx.scale(scale, scale)
+
+        ctx.fillStyle = '#0c0f14'
+        ctx.fillRect(0, 0, width, height)
+        ctx.drawImage(img, 0, 0, width, height)
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Canvas blob generation failed'))
+            return
+          }
+          const pngUrl = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = pngUrl
+          a.download = `${filename}.png`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(pngUrl)
+          URL.revokeObjectURL(url)
+          resolve()
+        }, 'image/png')
+      }
+
+      img.onerror = (e) => {
+        URL.revokeObjectURL(url)
+        reject(e)
+      }
+
+      img.src = url
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
 export default function ExportButton({
   endpoint,
   targetRef,
@@ -17,39 +95,9 @@ export default function ExportButton({
 
     try {
       if (format === 'png' && targetRef?.current) {
-        // SVG / Canvas / DOM PNG Export
-        const element = targetRef.current
-        const svgElement = element.querySelector('svg')
-        
-        if (svgElement) {
-          const svgData = new XMLSerializer().serializeToString(svgElement)
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          const img = new Image()
-          
-          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-          const url = URL.createObjectURL(svgBlob)
-
-          img.onload = () => {
-            canvas.width = img.width * 2 || 800
-            canvas.height = img.height * 2 || 400
-            ctx.fillStyle = '#0c0f14'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-
-            const pngUrl = canvas.toDataURL('image/png')
-            const downloadLink = document.createElement('a')
-            downloadLink.href = pngUrl
-            downloadLink.download = `${filename}.png`
-            document.body.appendChild(downloadLink)
-            downloadLink.click()
-            document.body.removeChild(downloadLink)
-            URL.revokeObjectURL(url)
-            setExporting(false)
-          }
-          img.src = url
-          return
-        }
+        await exportSvgToPng(targetRef.current, filename)
+        setExporting(false)
+        return
       }
 
       // Backend API Export (CSV / XLSX)

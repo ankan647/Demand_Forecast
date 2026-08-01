@@ -67,18 +67,61 @@ async def load_data():
         print(f"Loaded default sample data ({len(default_df)} rows) from {CSV_PATH}")
 
 
+def save_active_dataset_id(user_id: str, dataset_id: str):
+    user_active_dataset[user_id] = dataset_id
+    user_dir = os.path.join(UPLOAD_DIR, user_id)
+    os.makedirs(user_dir, exist_ok=True)
+    meta_path = os.path.join(user_dir, "active_dataset.json")
+    try:
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump({"active_dataset_id": dataset_id}, f)
+    except Exception as e:
+        print(f"Error saving active dataset metadata: {e}")
+
+
+def get_active_dataset_id(user_id: str) -> Optional[str]:
+    if user_id in user_active_dataset:
+        return user_active_dataset[user_id]
+
+    user_dir = os.path.join(UPLOAD_DIR, user_id)
+    meta_path = os.path.join(user_dir, "active_dataset.json")
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                active_id = data.get("active_dataset_id")
+                if active_id:
+                    user_active_dataset[user_id] = active_id
+                    return active_id
+        except Exception:
+            pass
+
+    if os.path.exists(user_dir):
+        csv_files = [f for f in os.listdir(user_dir) if f.endswith(".csv")]
+        if csv_files:
+            csv_files.sort(key=lambda f: os.path.getmtime(os.path.join(user_dir, f)), reverse=True)
+            newest_id = csv_files[0][:-4]
+            user_active_dataset[user_id] = newest_id
+            return newest_id
+
+    return None
+
+
 def get_user_dataframe(user: Optional[dict] = None) -> pd.DataFrame:
     """
-    Get active DataFrame for user, or return default sample dataset.
+    Get active DataFrame for user.
+    If authenticated user has no uploaded dataset, return empty DataFrame (strict isolation).
+    If unauthenticated guest, return default sample dataset.
     """
-    if not user:
+    if not user or not user.get("id"):
         return default_df
 
-    user_id = user.get("id")
-    if not user_id or user_id not in user_active_dataset:
-        return default_df
+    user_id = user["id"]
+    dataset_id = get_active_dataset_id(user_id)
 
-    dataset_id = user_active_dataset[user_id]
+    if not dataset_id:
+        return pd.DataFrame()
+
     if dataset_id == "default":
         return default_df
 
@@ -90,9 +133,39 @@ def get_user_dataframe(user: Optional[dict] = None) -> pd.DataFrame:
             return df
         except Exception as e:
             print(f"Error loading user dataset {dataset_id}: {e}")
-            return default_df
+            return pd.DataFrame()
 
-    return default_df
+    return pd.DataFrame()
+
+
+def get_user_profile(user_id: str) -> dict:
+    user_dir = os.path.join(UPLOAD_DIR, user_id)
+    profile_path = os.path.join(user_dir, "profile.json")
+    if os.path.exists(profile_path):
+        try:
+            with open(profile_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "restaurant_name": "",
+        "city": "",
+        "cuisine": "",
+        "currency": "₹",
+        "has_completed_onboarding": False,
+    }
+
+
+def save_user_profile(user_id: str, profile_data: dict) -> dict:
+    user_dir = os.path.join(UPLOAD_DIR, user_id)
+    os.makedirs(user_dir, exist_ok=True)
+    profile_path = os.path.join(user_dir, "profile.json")
+    existing = get_user_profile(user_id)
+    existing.update(profile_data)
+    existing["has_completed_onboarding"] = True
+    with open(profile_path, "w", encoding="utf-8") as f:
+        json.dump(existing, f, indent=2)
+    return existing
 
 
 def _parse_filters(
@@ -363,8 +436,8 @@ async def confirm_dataset_upload(
     clean_df = clean_and_process_dataset(raw_df, mapping)
     dataset_id, save_path = save_user_dataset(clean_df, user["id"], filename)
 
-    # Set as active
-    user_active_dataset[user["id"]] = dataset_id
+    # Set as active & persist selection
+    save_active_dataset_id(user["id"], dataset_id)
 
     # Clean stash
     del upload_stash[temp_id]
@@ -389,13 +462,14 @@ async def list_user_datasets(
     """List datasets belonging to current user."""
     user_id = user["id"]
     user_dir = os.path.join(UPLOAD_DIR, user_id)
+    active_id = get_active_dataset_id(user_id)
 
     datasets = [
         {
             "id": "default",
             "filename": "Sample POS Dataset (Default)",
             "rows": len(default_df),
-            "is_active": user_active_dataset.get(user_id, "default") == "default",
+            "is_active": active_id == "default",
         }
     ]
 
@@ -410,7 +484,7 @@ async def list_user_datasets(
                         "id": ds_id,
                         "filename": f"Custom Dataset ({len(df)} rows)",
                         "rows": len(df),
-                        "is_active": user_active_dataset.get(user_id) == ds_id,
+                        "is_active": active_id == ds_id,
                     })
                 except Exception:
                     pass
@@ -430,8 +504,37 @@ async def activate_dataset(
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="Dataset not found.")
 
-    user_active_dataset[user_id] = dataset_id
+    save_active_dataset_id(user_id, dataset_id)
     return {"success": True, "active_dataset_id": dataset_id}
+
+
+# ── User Profile & Onboarding Endpoints ────────────────────────────────
+
+
+@app.get("/api/profile")
+async def api_get_profile(
+    user: Optional[dict] = Depends(get_current_user_optional),
+):
+    """Get restaurant profile for authenticated user or demo default."""
+    if not user or not user.get("id"):
+        return {
+            "restaurant_name": "TK Korean Restaurant",
+            "city": "Mumbai",
+            "cuisine": "Korean Casual",
+            "currency": "₹",
+            "has_completed_onboarding": True,
+        }
+    return get_user_profile(user["id"])
+
+
+@app.post("/api/profile")
+async def api_save_profile(
+    payload: Dict[str, Any],
+    user: dict = Depends(get_current_user_required),
+):
+    """Save/update restaurant profile for user."""
+    profile = save_user_profile(user["id"], payload)
+    return {"success": True, "profile": profile}
 
 
 # ── Export Endpoints ──────────────────────────────────────────────────
