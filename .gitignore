@@ -34,3 +34,7 @@ npm-debug.log*
 # Gemini agent files
 .gemini/
 .agents/
+
+# Project reference docs (local only)
+insights.docx
+project_requirements.txt
