@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { HiLink } from 'react-icons/hi'
 
-export default function BasketAffinity({ apiBase, buildQuery }) {
+export default function BasketAffinity({ apiBase, buildQuery, token }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/basket-affinity${buildQuery()}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/basket-affinity${buildQuery()}`, { headers })
       .then(r => r.json())
       .then(d => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   if (loading) {
     return (

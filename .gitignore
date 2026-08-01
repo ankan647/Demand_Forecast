@@ -38,3 +38,8 @@ npm-debug.log*
 # Project reference docs (local only)
 insights.docx
 project_requirements.txt
+
+# Environment secrets
+.env
+.env.local
+.env.*.local

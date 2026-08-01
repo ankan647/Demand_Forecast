@@ -1,18 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
 } from 'recharts'
+import ExportButton from './ExportButton'
 
-export default function RevenueTrendChart({ apiBase, buildQuery }) {
+export default function RevenueTrendChart({ apiBase, buildQuery, token }) {
   const [data, setData] = useState([])
   const [granularity, setGranularity] = useState('weekly')
   const [loading, setLoading] = useState(true)
+  const chartRef = useRef(null)
 
   useEffect(() => {
     setLoading(true)
     const q = buildQuery({ granularity })
-    fetch(`${apiBase}/trends${q}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/trends${q}`, { headers })
       .then(r => r.json())
       .then(d => {
         setData(d.map(item => ({
@@ -23,7 +26,7 @@ export default function RevenueTrendChart({ apiBase, buildQuery }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery, granularity])
+  }, [apiBase, buildQuery, granularity, token])
 
   if (loading) {
     return (
@@ -34,20 +37,23 @@ export default function RevenueTrendChart({ apiBase, buildQuery }) {
   }
 
   return (
-    <div>
-      <div className="tabs">
-        <button
-          className={`tab ${granularity === 'daily' ? 'active' : ''}`}
-          onClick={() => setGranularity('daily')}
-        >
-          Daily
-        </button>
-        <button
-          className={`tab ${granularity === 'weekly' ? 'active' : ''}`}
-          onClick={() => setGranularity('weekly')}
-        >
-          Weekly
-        </button>
+    <div ref={chartRef}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="tabs" style={{ marginBottom: 0 }}>
+          <button
+            className={`tab ${granularity === 'daily' ? 'active' : ''}`}
+            onClick={() => setGranularity('daily')}
+          >
+            Daily
+          </button>
+          <button
+            className={`tab ${granularity === 'weekly' ? 'active' : ''}`}
+            onClick={() => setGranularity('weekly')}
+          >
+            Weekly
+          </button>
+        </div>
+        <ExportButton endpoint={`/export/trends?granularity=${granularity}`} targetRef={chartRef} filename={`revenue_trends_${granularity}`} token={token} apiBase={apiBase} />
       </div>
 
       <ResponsiveContainer width="100%" height={320}>

@@ -3,35 +3,49 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
+import ExportButton from './ExportButton'
 
 const CHANNEL_COLORS = {
   'Register': '#f59e0b',
-  'Uber Eats': '#10b981',
-  'Square Online': '#3b82f6',
-  'DoorDash': '#ef4444',
-  'Uber Eats Pickup': '#06b6d4',
-  'DoorDash Pickup': '#8b5cf6',
+  'Swiggy': '#fc8019',
+  'Zomato': '#cb202d',
+  'Personal Delivery': '#3b82f6',
+  'Swiggy Takeaway': '#06b6d4',
+  'Zomato Takeaway': '#8b5cf6',
   'Other': '#64748b',
 }
 
-export default function ChannelBreakdown({ apiBase, buildQuery }) {
+const CHANNEL_RENAME = {
+  'Uber Eats': 'Swiggy',
+  'DoorDash': 'Zomato',
+  'Square Online': 'Personal Delivery',
+  'Uber Eats Pickup': 'Swiggy Takeaway',
+  'DoorDash Pickup': 'Zomato Takeaway',
+}
+
+export default function ChannelBreakdown({ apiBase, buildQuery, token }) {
   const [data, setData] = useState([])
   const [catData, setCatData] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
     Promise.all([
-      fetch(`${apiBase}/channel-breakdown${buildQuery()}`).then(r => r.json()),
-      fetch(`${apiBase}/category-breakdown${buildQuery()}`).then(r => r.json()),
+      fetch(`${apiBase}/channel-breakdown${buildQuery()}`, { headers }).then(r => r.json()),
+      fetch(`${apiBase}/category-breakdown${buildQuery()}`, { headers }).then(r => r.json()),
     ])
       .then(([channels, categories]) => {
-        setData(channels)
+        const renamedChannels = channels.map(c => ({
+          ...c,
+          channel: CHANNEL_RENAME[c.channel] || c.channel,
+        }))
+        setData(renamedChannels)
         setCatData(categories)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   if (loading) {
     return (
@@ -51,6 +65,7 @@ export default function ChannelBreakdown({ apiBase, buildQuery }) {
         <div className="glass-card">
           <div className="card-header">
             <h3 className="card-title">🍩 Revenue by Channel</h3>
+            <ExportButton endpoint="/channel-breakdown" filename="channel_breakdown" token={token} apiBase={apiBase} />
           </div>
           <ResponsiveContainer width="100%" height={360}>
             <PieChart>

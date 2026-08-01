@@ -1,43 +1,47 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine, Legend
 } from 'recharts'
+import ExportButton from './ExportButton'
 
-export default function ForecastChart({ apiBase }) {
+export default function ForecastChart({ apiBase, token }) {
   const [items, setItems] = useState([])
   const [selectedItem, setSelectedItem] = useState('')
   const [weeks, setWeeks] = useState(4)
   const [metric, setMetric] = useState('quantity')
   const [forecast, setForecast] = useState(null)
   const [loading, setLoading] = useState(false)
+  const chartRef = useRef(null)
 
   // Load available items
   useEffect(() => {
-    fetch(`${apiBase}/forecast/items`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/forecast/items`, { headers })
       .then(r => r.json())
       .then(data => {
         setItems(data)
         if (data.length > 0) setSelectedItem(data[0].product)
       })
       .catch(console.error)
-  }, [apiBase])
+  }, [apiBase, token])
 
   // Load forecast when item/weeks/metric changes
   useEffect(() => {
     if (!selectedItem) return
     setLoading(true)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
     const params = new URLSearchParams({
       item: selectedItem,
       weeks: weeks.toString(),
       metric,
     })
-    fetch(`${apiBase}/forecast?${params}`)
+    fetch(`${apiBase}/forecast?${params}`, { headers })
       .then(r => r.json())
       .then(data => setForecast(data))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, selectedItem, weeks, metric])
+  }, [apiBase, selectedItem, weeks, metric, token])
 
   // Build chart data
   const chartData = []
@@ -87,11 +91,20 @@ export default function ForecastChart({ apiBase }) {
     <div>
       <div className="card-header">
         <h3 className="card-title">📈 Per-Item Demand Forecast</h3>
-        {forecast && (
-          <span className="badge badge-purple" style={{ fontSize: 11 }}>
-            Model: {forecast.model_type}
-          </span>
-        )}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {forecast && (
+            <span className="badge badge-purple" style={{ fontSize: 11 }}>
+              Model: {forecast.model_type}
+            </span>
+          )}
+          <ExportButton
+            endpoint={`/export/forecast?item=${encodeURIComponent(selectedItem)}&weeks=${weeks}`}
+            targetRef={chartRef}
+            filename={`forecast_${selectedItem}`}
+            token={token}
+            apiBase={apiBase}
+          />
+        </div>
       </div>
 
       {/* Controls */}

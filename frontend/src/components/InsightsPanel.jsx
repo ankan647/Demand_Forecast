@@ -25,19 +25,20 @@ const CATEGORY_LABELS = {
   Trends: '📈 Trend Insights',
 }
 
-export default function InsightsPanel({ apiBase, buildQuery }) {
+export default function InsightsPanel({ apiBase, buildQuery, token }) {
   const [insights, setInsights] = useState([])
   const [activeTab, setActiveTab] = useState('all')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/insights${buildQuery()}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/insights${buildQuery()}`, { headers })
       .then(r => r.json())
       .then(data => setInsights(data))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   const categories = ['all', ...new Set(insights.map(i => i.category))]
   const filtered = activeTab === 'all' ? insights : insights.filter(i => i.category === activeTab)

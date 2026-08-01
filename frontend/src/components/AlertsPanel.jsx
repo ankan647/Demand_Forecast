@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
 import { HiTrendingUp, HiTrendingDown, HiExclamation } from 'react-icons/hi'
+import ExportButton from './ExportButton'
 
-export default function AlertsPanel({ apiBase, buildQuery }) {
+export default function AlertsPanel({ apiBase, buildQuery, token }) {
   const [alerts, setAlerts] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/alerts${buildQuery()}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/alerts${buildQuery()}`, { headers })
       .then(r => r.json())
       .then(data => setAlerts(data))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   if (loading) {
     return (
@@ -27,6 +29,9 @@ export default function AlertsPanel({ apiBase, buildQuery }) {
 
   return (
     <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <ExportButton endpoint="/export/alerts" filename="smart_alerts" token={token} apiBase={apiBase} />
+      </div>
       <div className="section-grid three-col">
         {/* Restock Risk */}
         <div className="glass-card">

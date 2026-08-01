@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { HiSearch, HiChevronUp, HiChevronDown } from 'react-icons/hi'
+import ExportButton from './ExportButton'
 
-export default function ItemTable({ apiBase, buildQuery }) {
+export default function ItemTable({ apiBase, buildQuery, token }) {
   const [data, setData] = useState(null)
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState('total_revenue')
@@ -12,12 +13,13 @@ export default function ItemTable({ apiBase, buildQuery }) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/items${buildQuery()}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/items${buildQuery()}`, { headers })
       .then(r => r.json())
       .then(d => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   const filteredItems = useMemo(() => {
     if (!data?.all_items) return []
@@ -72,14 +74,17 @@ export default function ItemTable({ apiBase, buildQuery }) {
     <div>
       <div className="card-header">
         <h3 className="card-title">📦 All Items Performance</h3>
-        <div className="table-search-wrapper">
-          <HiSearch className="search-icon" />
-          <input
-            className="table-search"
-            placeholder="Search products or categories..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(0) }}
-          />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <ExportButton endpoint="/export/items" filename="item_performance" token={token} apiBase={apiBase} />
+          <div className="table-search-wrapper">
+            <HiSearch className="search-icon" />
+            <input
+              className="table-search"
+              placeholder="Search products or categories..."
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(0) }}
+            />
+          </div>
         </div>
       </div>
 

@@ -25,18 +25,19 @@ const QUADRANT_DESC = {
   'Dog': 'Low popularity, low profit — consider removing',
 }
 
-export default function MenuMatrix({ apiBase, buildQuery }) {
+export default function MenuMatrix({ apiBase, buildQuery, token }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/menu-matrix${buildQuery()}`)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    fetch(`${apiBase}/menu-matrix${buildQuery()}`, { headers })
       .then(r => r.json())
       .then(d => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [apiBase, buildQuery])
+  }, [apiBase, buildQuery, token])
 
   if (loading) {
     return (
