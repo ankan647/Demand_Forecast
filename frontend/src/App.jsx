@@ -20,6 +20,7 @@ import UploadWizard from './components/UploadWizard'
 import DatasetSwitcher from './components/DatasetSwitcher'
 import OnboardingModal from './components/OnboardingModal'
 import NoDatasetGate from './components/NoDatasetGate'
+import Antigravity from './components/Antigravity'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -165,6 +166,22 @@ function MainDashboard() {
 
   return (
     <div className="app-layout">
+      {/* 3D Dynamic Background */}
+      <div className="antigravity-bg">
+        <Antigravity
+          count={250}
+          magnetRadius={6}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.5}
+          lerpSpeed={0.05}
+          color="#f59e0b"
+          autoAnimate={true}
+          particleVariance={1}
+        />
+      </div>
+
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-logo">

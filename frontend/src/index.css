@@ -127,7 +127,21 @@ body {
 
 /* ── Layout ───────────────────────────────────────────────────────── */
 
+.antigravity-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  overflow: hidden;
+}
+
 .app-layout {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-height: 100vh;
 }
