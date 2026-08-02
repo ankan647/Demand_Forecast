@@ -115,20 +115,24 @@ def forecast_item(
         return result
 
     if n < 8:
-        # Moving average forecast
+        # Moving average forecast — blend from last actual to avoid baseline jump
         window = min(4, n)
         ma = float(np.mean(values[-window:]))
         std = max(float(np.std(values[-window:])), 1.0)
+        last_val = float(values[-1])
         last_date = weekly.index[-1]
 
         for i in range(1, weeks + 1):
             future_date = last_date + pd.Timedelta(weeks=i)
+            # Smooth blend: start near last_val, converge to ma over the horizon
+            alpha = i / weeks  # 0→1 over forecast horizon
+            predicted = last_val + alpha * (ma - last_val)
             ci = 1.96 * std * np.sqrt(i)
             result["forecast"].append({
                 "week": str(future_date.date()),
-                "predicted": round(ma, 2),
-                "lower": round(max(0, ma - ci), 2),
-                "upper": round(ma + ci, 2),
+                "predicted": round(predicted, 2),
+                "lower": round(max(0, predicted - ci), 2),
+                "upper": round(predicted + ci, 2),
             })
         result["model_type"] = "moving_average"
         return result
@@ -193,20 +197,23 @@ def forecast_item(
         result["model_type"] = f"ets_{'seasonal' if use_seasonal else 'trend'}"
 
     except Exception as e:
-        # Final fallback: moving average
+        # Final fallback: moving average — blend from last actual
         window = 4
         ma = float(np.mean(values[-window:]))
         std = max(float(np.std(values[-window:])), 1.0)
+        last_val = float(values[-1])
         last_date = weekly.index[-1]
 
         for i in range(1, weeks + 1):
             future_date = last_date + pd.Timedelta(weeks=i)
+            alpha = i / weeks
+            predicted = last_val + alpha * (ma - last_val)
             ci = 1.96 * std * np.sqrt(i)
             result["forecast"].append({
                 "week": str(future_date.date()),
-                "predicted": round(ma, 2),
-                "lower": round(max(0, ma - ci), 2),
-                "upper": round(ma + ci, 2),
+                "predicted": round(predicted, 2),
+                "lower": round(max(0, predicted - ci), 2),
+                "upper": round(predicted + ci, 2),
             })
         result["model_type"] = "moving_average_fallback"
         result["error_msg"] = f"ETS failed, used moving average: {str(e)[:100]}"

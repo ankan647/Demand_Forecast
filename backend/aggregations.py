@@ -168,6 +168,11 @@ def get_items(df: pd.DataFrame, filters: dict) -> dict:
     if payments.empty:
         return {"top_sellers": [], "slow_movers": [], "all_items": []}
 
+    # Ensure discount column exists (uploaded datasets may lack it)
+    if "discount" not in payments.columns:
+        payments = payments.copy()
+        payments["discount"] = 0.0
+
     item_stats = (
         payments.groupby(["product", "category"])
         .agg(

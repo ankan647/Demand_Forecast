@@ -191,6 +191,9 @@ def clean_and_process_dataset(df: pd.DataFrame, mapping: Dict[str, str]) -> pd.D
     if "city" not in clean_df:
         clean_df["city"] = "Mumbai"
 
+    if "discount" not in clean_df:
+        clean_df["discount"] = 0.0
+
     # Sort chronologically
     if "order_date" in clean_df:
         clean_df = clean_df.sort_values("order_date").reset_index(drop=True)

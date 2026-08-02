@@ -23,6 +23,10 @@ def generate_insights(df: pd.DataFrame, filters: dict) -> list:
     if payments.empty:
         return []
 
+    # Ensure discount column exists (uploaded datasets may lack it)
+    if "discount" not in payments.columns:
+        payments["discount"] = 0.0
+
     payments["order_date"] = pd.to_datetime(payments["order_date"])
     insights = []
 
