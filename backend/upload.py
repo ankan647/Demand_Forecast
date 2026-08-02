@@ -198,10 +198,18 @@ def clean_and_process_dataset(df: pd.DataFrame, mapping: Dict[str, str]) -> pd.D
     return clean_df
 
 
-def save_user_dataset(df: pd.DataFrame, user_id: str, filename: str) -> str:
-    """Save cleaned DataFrame to user's storage folder."""
+def save_user_dataset(df: pd.DataFrame, user_id: str, filename: str, replace_old: bool = True) -> Tuple[str, str]:
+    """Save cleaned DataFrame to user's storage folder, deleting old CSV datasets if replace_old is True."""
     user_dir = os.path.join(UPLOAD_DIR, user_id)
     os.makedirs(user_dir, exist_ok=True)
+
+    if replace_old:
+        for f in os.listdir(user_dir):
+            if f.endswith(".csv"):
+                try:
+                    os.remove(os.path.join(user_dir, f))
+                except Exception as e:
+                    print(f"Error removing old dataset file {f}: {e}")
 
     dataset_id = str(uuid.uuid4())
     save_path = os.path.join(user_dir, f"{dataset_id}.csv")

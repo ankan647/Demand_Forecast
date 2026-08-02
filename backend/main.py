@@ -119,11 +119,8 @@ def get_user_dataframe(user: Optional[dict] = None) -> pd.DataFrame:
     user_id = user["id"]
     dataset_id = get_active_dataset_id(user_id)
 
-    if not dataset_id:
+    if not dataset_id or dataset_id == "default":
         return pd.DataFrame()
-
-    if dataset_id == "default":
-        return default_df
 
     dataset_path = os.path.join(UPLOAD_DIR, user_id, f"{dataset_id}.csv")
     if os.path.exists(dataset_path):
@@ -421,9 +418,11 @@ async def confirm_dataset_upload(
 ):
     """
     Step 2: Confirm column mapping, clean dataset, save to disk, set as active.
+    Optionally removes previous dataset files if replace_old is True.
     """
     temp_id = payload.get("temp_id")
     mapping = payload.get("mapping", {})
+    replace_old = payload.get("replace_old", True)
 
     if not temp_id or temp_id not in upload_stash:
         raise HTTPException(status_code=404, detail="Upload session expired. Please upload file again.")
@@ -434,7 +433,7 @@ async def confirm_dataset_upload(
 
     # Clean & process
     clean_df = clean_and_process_dataset(raw_df, mapping)
-    dataset_id, save_path = save_user_dataset(clean_df, user["id"], filename)
+    dataset_id, save_path = save_user_dataset(clean_df, user["id"], filename, replace_old=replace_old)
 
     # Set as active & persist selection
     save_active_dataset_id(user["id"], dataset_id)
@@ -442,16 +441,20 @@ async def confirm_dataset_upload(
     # Clean stash
     del upload_stash[temp_id]
 
+    min_date = str(clean_df["order_date"].min()) if not clean_df.empty and "order_date" in clean_df else ""
+    max_date = str(clean_df["order_date"].max()) if not clean_df.empty and "order_date" in clean_df else ""
+
     return {
         "success": True,
         "dataset_id": dataset_id,
         "filename": filename,
         "processed_rows": len(clean_df),
         "date_range": {
-            "min": str(clean_df["order_date"].min()),
-            "max": str(clean_df["order_date"].max()),
+            "min": min_date,
+            "max": max_date,
         },
         "is_active": True,
+        "old_data_removed": replace_old,
     }
 
 
@@ -459,19 +462,12 @@ async def confirm_dataset_upload(
 async def list_user_datasets(
     user: dict = Depends(get_current_user_required),
 ):
-    """List datasets belonging to current user."""
+    """List datasets belonging to current user (excluding sample dataset for authenticated users)."""
     user_id = user["id"]
     user_dir = os.path.join(UPLOAD_DIR, user_id)
     active_id = get_active_dataset_id(user_id)
 
-    datasets = [
-        {
-            "id": "default",
-            "filename": "Sample POS Dataset (Default)",
-            "rows": len(default_df),
-            "is_active": active_id == "default",
-        }
-    ]
+    datasets = []
 
     if os.path.exists(user_dir):
         for f in os.listdir(user_dir):
@@ -499,13 +495,42 @@ async def activate_dataset(
 ):
     """Set active dataset for current user."""
     user_id = user["id"]
-    if dataset_id != "default":
-        path = os.path.join(UPLOAD_DIR, user_id, f"{dataset_id}.csv")
-        if not os.path.exists(path):
-            raise HTTPException(status_code=404, detail="Dataset not found.")
+    if dataset_id == "default":
+        raise HTTPException(status_code=403, detail="Authenticated users cannot switch to the sample dataset.")
+
+    path = os.path.join(UPLOAD_DIR, user_id, f"{dataset_id}.csv")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Dataset not found.")
 
     save_active_dataset_id(user_id, dataset_id)
     return {"success": True, "active_dataset_id": dataset_id}
+
+
+@app.delete("/api/datasets/{dataset_id}")
+async def delete_dataset(
+    dataset_id: str,
+    user: dict = Depends(get_current_user_required),
+):
+    """Delete a specific user dataset."""
+    user_id = user["id"]
+    path = os.path.join(UPLOAD_DIR, user_id, f"{dataset_id}.csv")
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to delete dataset: {e}")
+
+    active_id = get_active_dataset_id(user_id)
+    if active_id == dataset_id:
+        user_active_dataset.pop(user_id, None)
+        meta_path = os.path.join(UPLOAD_DIR, user_id, "active_dataset.json")
+        if os.path.exists(meta_path):
+            try:
+                os.remove(meta_path)
+            except Exception:
+                pass
+
+    return {"success": True, "message": "Dataset deleted successfully."}
 
 
 # ── User Profile & Onboarding Endpoints ────────────────────────────────
@@ -603,8 +628,7 @@ async def export_alerts(
     )
 
 
-# ── Run ───────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

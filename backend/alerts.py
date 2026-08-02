@@ -12,6 +12,9 @@ from forecasting import _aggregate_weekly
 def generate_alerts(df: pd.DataFrame, filters: dict) -> dict:
     """Generate restock-risk and discount-candidate alerts."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return {"restock_risk": [], "discount_candidates": [], "high_refund": []}
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")

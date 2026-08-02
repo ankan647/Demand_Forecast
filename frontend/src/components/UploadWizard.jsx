@@ -19,6 +19,7 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
   const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [replaceOld, setReplaceOld] = useState(true)
 
   // Server upload response
   const [tempId, setTempId] = useState(null)
@@ -29,6 +30,19 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
   const [totalRows, setTotalRows] = useState(0)
 
   if (!isOpen) return null
+
+  const resetWizard = () => {
+    setStep(1)
+    setFile(null)
+    setLoading(false)
+    setError(null)
+    setTempId(null)
+    setUploadedCols([])
+    setMapping({})
+    setWarnings([])
+    setPreviewRows([])
+    setTotalRows(0)
+  }
 
   const handleFileSelect = async (selectedFile) => {
     if (!selectedFile) return
@@ -80,6 +94,7 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
         body: JSON.stringify({
           temp_id: tempId,
           mapping,
+          replace_old: replaceOld,
         }),
       })
 
@@ -197,9 +212,32 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
               />
             </div>
 
+            {/* Replace Old Data Option */}
+            <div style={{
+              marginTop: 16,
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <input
+                id="replace-old-checkbox-step1"
+                type="checkbox"
+                checked={replaceOld}
+                onChange={(e) => setReplaceOld(e.target.checked)}
+                style={{ accentColor: 'var(--accent-primary)', width: 16, height: 16, cursor: 'pointer' }}
+              />
+              <label htmlFor="replace-old-checkbox-step1" style={{ fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <strong>Remove old data automatically:</strong> Delete previous CSV datasets after adding the new one
+              </label>
+            </div>
+
             {/* Dataset requirements note for maximum forecasting accuracy */}
             <div style={{
-              marginTop: 20,
+              marginTop: 16,
               padding: 14,
               borderRadius: 'var(--radius-md)',
               backgroundColor: 'rgba(245, 158, 11, 0.08)',
@@ -345,6 +383,29 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
               </table>
             </div>
 
+            {/* Option to Replace Old Data */}
+            <div style={{
+              marginTop: 16,
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: replaceOld ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+              border: replaceOld ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <input
+                id="replace-old-checkbox-step3"
+                type="checkbox"
+                checked={replaceOld}
+                onChange={(e) => setReplaceOld(e.target.checked)}
+                style={{ accentColor: 'var(--accent-primary)', width: 16, height: 16, cursor: 'pointer' }}
+              />
+              <label htmlFor="replace-old-checkbox-step3" style={{ fontSize: 13, color: replaceOld ? '#f87171' : 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <strong>Remove old data after upload:</strong> Previous CSV datasets will be deleted upon confirming.
+              </label>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
               <button
                 className="pagination-btn"
@@ -383,24 +444,65 @@ export default function UploadWizard({ isOpen, onClose, onUploadComplete, apiBas
             <h3 style={{ fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>
               Dataset Processed & Applied!
             </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
               All KPI metrics, trend charts, forecast models, and insights have been dynamically recalculated from your uploaded dataset.
             </p>
-            <button
-              onClick={onClose}
-              style={{
-                padding: '12px 32px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--gradient-warm)',
-                border: 'none',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              Go to Dashboard
-            </button>
+
+            {replaceOld && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 14px',
+                borderRadius: 20,
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                fontSize: 12,
+                fontWeight: 600,
+                marginBottom: 20,
+              }}>
+                <span>🗑️ Old data was automatically removed and replaced</span>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
+              <button
+                onClick={resetWizard}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--border-medium)',
+                  color: 'var(--accent-primary-light)',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <HiCloudUpload size={18} />
+                <span>Upload Another CSV</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '12px 32px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--gradient-warm)',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Go to Dashboard
+              </button>
+            </div>
           </div>
         )}
       </div>

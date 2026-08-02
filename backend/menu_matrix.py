@@ -15,6 +15,9 @@ from aggregations import apply_filters
 def get_menu_matrix(df: pd.DataFrame, filters: dict) -> dict:
     """Classify items into menu engineering quadrants."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return {"items": [], "medians": {"quantity": 0, "revenue_per_unit": 0}}
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")

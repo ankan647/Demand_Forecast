@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { HiDatabase, HiCheck, HiPlus } from 'react-icons/hi'
+import { HiDatabase, HiCheck, HiPlus, HiTrash } from 'react-icons/hi'
 import { useAuth } from './AuthGuard'
 
 export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localhost:8000/api', onDatasetChanged }) {
@@ -48,7 +48,25 @@ export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localh
     }
   }
 
-  const activeItem = datasets.find((d) => d.id === activeDataset) || { filename: 'Sample POS Dataset' }
+  const handleDelete = async (e, id) => {
+    e.stopPropagation()
+    if (!token) return
+
+    try {
+      const resp = await fetch(`${apiBase}/datasets/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (resp.ok) {
+        await fetchDatasets()
+        if (onDatasetChanged) onDatasetChanged(id)
+      }
+    } catch (err) {
+      console.error('Error deleting dataset:', err)
+    }
+  }
+
+  const activeItem = datasets.find((d) => d.id === activeDataset) || (user ? { filename: 'No Dataset Selected' } : { filename: 'Sample POS Dataset' })
 
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -90,32 +108,53 @@ export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localh
             Active Dataset
           </div>
 
-          {datasets.map((ds) => (
-            <button
-              key={ds.id}
-              onClick={() => handleActivate(ds.id)}
-              style={{
-                width: '100%',
-                padding: '8px 14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: ds.id === activeDataset ? 'rgba(245, 158, 11, 0.1)' : 'none',
-                border: 'none',
-                color: ds.id === activeDataset ? 'var(--accent-primary-light)' : 'var(--text-primary)',
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <div>
-                <div>{ds.filename}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{ds.rows} rows</div>
+          {datasets.length === 0 ? (
+            <div style={{ padding: '8px 14px', fontSize: 12, color: 'var(--text-tertiary)' }}>
+              No custom datasets uploaded
+            </div>
+          ) : (
+            datasets.map((ds) => (
+              <div
+                key={ds.id}
+                onClick={() => handleActivate(ds.id)}
+                style={{
+                  width: '100%',
+                  padding: '8px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: ds.id === activeDataset ? 'rgba(245, 158, 11, 0.1)' : 'none',
+                  border: 'none',
+                  color: ds.id === activeDataset ? 'var(--accent-primary-light)' : 'var(--text-primary)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <div>
+                  <div>{ds.filename}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{ds.rows} rows</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {ds.id === activeDataset && <HiCheck size={16} style={{ color: 'var(--accent-primary)' }} />}
+                  <button
+                    onClick={(e) => handleDelete(e, ds.id)}
+                    title="Remove dataset"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-tertiary)',
+                      cursor: 'pointer',
+                      padding: 2,
+                    }}
+                  >
+                    <HiTrash size={14} />
+                  </button>
+                </div>
               </div>
-              {ds.id === activeDataset && <HiCheck size={16} style={{ color: 'var(--accent-primary)' }} />}
-            </button>
-          ))}
+            ))
+          )}
 
           <hr className="section-divider" style={{ margin: '6px 0' }} />
 

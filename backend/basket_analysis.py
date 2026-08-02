@@ -18,6 +18,9 @@ def get_basket_affinity(df: pd.DataFrame, filters: dict, min_basket_count: int =
     pair co-occurrences. Returns support and confidence metrics.
     """
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return {"pairs": [], "total_baskets": 0}
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")

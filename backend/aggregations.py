@@ -9,19 +9,22 @@ import numpy as np
 
 def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     """Apply common query filters to a DataFrame."""
+    if df.empty:
+        return df
+
     result = df.copy()
 
-    if filters.get("store"):
+    if filters.get("store") and "store" in result:
         result = result[result["store"] == filters["store"]]
-    if filters.get("city"):
+    if filters.get("city") and "city" in result:
         result = result[result["city"] == filters["city"]]
-    if filters.get("category"):
+    if filters.get("category") and "category" in result:
         result = result[result["category"] == filters["category"]]
-    if filters.get("channel"):
+    if filters.get("channel") and "channel" in result:
         result = result[result["channel"] == filters["channel"]]
-    if filters.get("start"):
+    if filters.get("start") and "order_date" in result:
         result = result[result["order_date"] >= pd.to_datetime(filters["start"]).date()]
-    if filters.get("end"):
+    if filters.get("end") and "order_date" in result:
         result = result[result["order_date"] <= pd.to_datetime(filters["end"]).date()]
 
     return result
@@ -29,7 +32,37 @@ def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
 
 def get_kpis(df: pd.DataFrame, filters: dict) -> dict:
     """Compute headline KPI metrics."""
+    if df.empty:
+        return {
+            "total_revenue": 0,
+            "total_orders": 0,
+            "total_units": 0,
+            "avg_order_value": 0,
+            "refund_count": 0,
+            "refund_amount": 0,
+            "top_item": "N/A",
+            "top_item_revenue": 0,
+            "categories": 0,
+            "products_sold": 0,
+            "date_range": {"start": "", "end": ""},
+        }
+
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return {
+            "total_revenue": 0,
+            "total_orders": 0,
+            "total_units": 0,
+            "avg_order_value": 0,
+            "refund_count": 0,
+            "refund_amount": 0,
+            "top_item": "N/A",
+            "top_item_revenue": 0,
+            "categories": 0,
+            "products_sold": 0,
+            "date_range": {"start": "", "end": ""},
+        }
+
     payments = filtered[filtered["event_type"] == "Payment"]
     refunds = filtered[filtered["event_type"] == "Refund"]
 
@@ -78,6 +111,9 @@ def get_kpis(df: pd.DataFrame, filters: dict) -> dict:
 def get_trends(df: pd.DataFrame, granularity: str, filters: dict) -> list:
     """Get time-series revenue/orders/units data."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return []
+
     payments = filtered[filtered["event_type"] == "Payment"]
 
     if payments.empty:
@@ -121,6 +157,9 @@ def get_trends(df: pd.DataFrame, granularity: str, filters: dict) -> list:
 def get_items(df: pd.DataFrame, filters: dict) -> dict:
     """Get item-level breakdown: top sellers, slow movers, and full table."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return {"top_sellers": [], "slow_movers": [], "all_items": []}
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")
@@ -171,6 +210,9 @@ def get_items(df: pd.DataFrame, filters: dict) -> dict:
 def get_channel_breakdown(df: pd.DataFrame, filters: dict) -> list:
     """Get revenue/orders split by channel."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return []
+
     payments = filtered[filtered["event_type"] == "Payment"]
 
     if payments.empty:
@@ -209,6 +251,9 @@ def get_channel_breakdown(df: pd.DataFrame, filters: dict) -> list:
 def get_category_breakdown(df: pd.DataFrame, filters: dict) -> list:
     """Get revenue/orders split by category."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return []
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")

@@ -12,6 +12,9 @@ from aggregations import apply_filters
 def generate_insights(df: pd.DataFrame, filters: dict) -> list:
     """Generate a list of data-driven insights."""
     filtered = apply_filters(df, filters)
+    if filtered.empty:
+        return []
+
     payments = filtered[
         (filtered["event_type"] == "Payment") &
         (filtered["category"] != "Custom Amount")

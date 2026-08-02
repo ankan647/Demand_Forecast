@@ -15,6 +15,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def _aggregate_weekly(df: pd.DataFrame, item: str, metric: str = "quantity") -> pd.Series:
     """Aggregate item-level data to weekly frequency."""
+    if df.empty:
+        return pd.Series(dtype=float)
+
     item_data = df[
         (df["product"] == item) &
         (df["event_type"] == "Payment") &
@@ -45,6 +48,7 @@ def _aggregate_weekly(df: pd.DataFrame, item: str, metric: str = "quantity") -> 
 
     weekly.index.name = "week"
     return weekly
+
 
 
 def forecast_item(
@@ -212,10 +216,16 @@ def forecast_item(
 
 def get_forecastable_items(df: pd.DataFrame, min_weeks: int = 4) -> list:
     """Return list of items that have enough data for forecasting."""
+    if df.empty:
+        return []
+
     payments = df[
         (df["event_type"] == "Payment") &
         (df["category"] != "Custom Amount")
     ].copy()
+    if payments.empty:
+        return []
+
     payments["order_date"] = pd.to_datetime(payments["order_date"])
     payments["week"] = payments["order_date"].dt.to_period("W")
 
@@ -226,3 +236,4 @@ def get_forecastable_items(df: pd.DataFrame, min_weeks: int = 4) -> list:
         {"product": name, "weeks_of_data": int(count)}
         for name, count in valid.items()
     ]
+

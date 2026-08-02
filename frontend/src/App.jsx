@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   HiChartBar, HiCube, HiTrendingUp, HiLightBulb, HiExclamation,
   HiViewGrid, HiGlobe, HiLink, HiMenuAlt2, HiChevronLeft,
@@ -19,6 +19,7 @@ import AuthModal from './components/AuthModal'
 import UploadWizard from './components/UploadWizard'
 import DatasetSwitcher from './components/DatasetSwitcher'
 import OnboardingModal from './components/OnboardingModal'
+import NoDatasetGate from './components/NoDatasetGate'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -42,6 +43,7 @@ function MainDashboard() {
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [profile, setProfile] = useState(null)
   const [activeDatasetId, setActiveDatasetId] = useState('default')
+  const [userDatasets, setUserDatasets] = useState([])
 
   const [filters, setFilters] = useState({
     category: '',
@@ -55,10 +57,31 @@ function MainDashboard() {
     date_range: { min: '', max: '' },
   })
 
+  // Ref to hold current AbortController for cancelling in-flight requests on auth/session switch
+  const abortControllerRef = useRef(null)
+
+  // Reset all session state on user/token change
+  useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
+    setFilters({ category: '', channel: '', start: '', end: '' })
+    setFilterOptions({ categories: [], channels: [], date_range: { min: '', max: '' } })
+    setProfile(null)
+    setUserDatasets([])
+    setActiveDatasetId(user ? '' : 'default')
+  }, [user, token])
+
   // Load profile for authenticated user
   const loadProfile = useCallback(() => {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    fetch(`${API_BASE}/profile`, { headers })
+    if (!token) return
+    const signal = abortControllerRef.current?.signal
+    fetch(`${API_BASE}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    })
       .then(r => r.json())
       .then(data => {
         setProfile(data)
@@ -66,20 +89,53 @@ function MainDashboard() {
           setOnboardingOpen(true)
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error(err)
+      })
   }, [user, token])
 
   useEffect(() => {
-    loadProfile()
-  }, [loadProfile])
+    if (user && token) {
+      loadProfile()
+    }
+  }, [loadProfile, user, token])
+
+  // Load user dataset records list
+  const loadDatasets = useCallback(() => {
+    if (!user || !token) {
+      setUserDatasets([])
+      return
+    }
+    const signal = abortControllerRef.current?.signal
+    fetch(`${API_BASE}/datasets`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setUserDatasets(data)
+        }
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error(err)
+      })
+  }, [user, token])
+
+  useEffect(() => {
+    loadDatasets()
+  }, [loadDatasets, activeDatasetId])
 
   // Load filter options on mount / token change / dataset change
   const loadFilters = useCallback(() => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    fetch(`${API_BASE}/filters`, { headers })
+    const signal = abortControllerRef.current?.signal
+    fetch(`${API_BASE}/filters`, { headers, signal })
       .then(r => r.json())
       .then(data => setFilterOptions(data))
-      .catch(console.error)
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error(err)
+      })
   }, [token])
 
   useEffect(() => {
@@ -99,7 +155,13 @@ function MainDashboard() {
     return qs ? `?${qs}` : ''
   }, [filters])
 
-  const hasNoData = Boolean(user && filterOptions.categories.length === 0)
+  // Derive hasDataset: unauthenticated guest gets sample data (true), authenticated user checks dataset list
+  const hasDataset = !user || userDatasets.length > 0
+
+  const handleOpenUpload = () => {
+    if (!user) setAuthModalOpen(true)
+    else setUploadWizardOpen(true)
+  }
 
   return (
     <div className="app-layout">
@@ -200,19 +262,13 @@ function MainDashboard() {
             {/* Dataset Switcher Dropdown */}
             <DatasetSwitcher
               apiBase={API_BASE}
-              onOpenUpload={() => {
-                if (!user) setAuthModalOpen(true)
-                else setUploadWizardOpen(true)
-              }}
+              onOpenUpload={handleOpenUpload}
               onDatasetChanged={(id) => setActiveDatasetId(id)}
             />
 
             {/* Quick Upload Button */}
             <button
-              onClick={() => {
-                if (!user) setAuthModalOpen(true)
-                else setUploadWizardOpen(true)
-              }}
+              onClick={handleOpenUpload}
               className="filter-select"
               style={{
                 display: 'inline-flex',
@@ -275,36 +331,94 @@ function MainDashboard() {
           </div>
         </header>
 
-        {/* Page Content */}
-        {hasNoData ? (
-          <EmptyDatasetPrompt onUpload={() => setUploadWizardOpen(true)} />
-        ) : (
-          <>
-            {activePage === 'dashboard' && (
-              <DashboardPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'items' && (
-              <ItemsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'forecast' && (
-              <ForecastPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'insights' && (
-              <InsightsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'alerts' && (
-              <AlertsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'menu-matrix' && (
-              <MenuMatrixPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'channels' && (
-              <ChannelsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-            {activePage === 'basket' && (
-              <BasketPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
-            )}
-          </>
+        {/* Per-Tab Gated Content */}
+        {activePage === 'dashboard' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="No POS Dataset Uploaded Yet"
+            icon="📊"
+            description="Upload your restaurant's POS sales dataset (CSV or Excel) to generate custom KPIs, revenue trends, and top selling item summaries."
+          >
+            <DashboardPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'items' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="No Product Data Available"
+            icon="📦"
+            description="Upload a POS dataset to analyze individual product sales performance, volume rankings, and pricing metrics."
+          >
+            <ItemsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'forecast' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="Demand Forecast Unavailable"
+            icon="📈"
+            description="Upload sales history to generate AI-powered per-item demand forecasts and confidence intervals."
+          >
+            <ForecastPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'insights' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="No Automated Insights"
+            icon="💡"
+            description="Upload a POS dataset to generate automated data insights, week-over-week revenue callouts, and anomaly detections."
+          >
+            <InsightsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'alerts' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="Smart Alerts Inactive"
+            icon="⚠️"
+            description="Upload your sales dataset to enable inventory restock risk warnings, slow-mover discount recommendations, and high refund alerts."
+          >
+            <AlertsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'menu-matrix' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="Menu Engineering Matrix Empty"
+            icon="🎯"
+            description="Upload menu sales data to classify your dishes into Stars, Plow Horses, Puzzles, and Dogs based on profitability and popularity."
+          >
+            <MenuMatrixPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'channels' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="Channel Breakdown Unavailable"
+            icon="🌐"
+            description="Upload order data to compare revenue, volume, and average order values across Swiggy, Zomato, Register, and Direct channels."
+          >
+            <ChannelsPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
+        )}
+        {activePage === 'basket' && (
+          <NoDatasetGate
+            hasDataset={hasDataset}
+            onUpload={handleOpenUpload}
+            title="Basket Analysis Empty"
+            icon="🔗"
+            description="Upload POS transaction data to discover frequently co-purchased item pairs and cross-selling suggestions."
+          >
+            <BasketPage apiBase={API_BASE} buildQuery={buildQuery} token={token} />
+          </NoDatasetGate>
         )}
       </main>
 
@@ -333,6 +447,7 @@ function MainDashboard() {
         apiBase={API_BASE}
         onUploadComplete={() => {
           loadFilters()
+          loadDatasets()
           setActiveDatasetId('custom_' + Date.now())
         }}
       />
@@ -340,63 +455,6 @@ function MainDashboard() {
   )
 }
 
-function EmptyDatasetPrompt({ onUpload }) {
-  return (
-    <div
-      className="glass-card animate-fade-in"
-      style={{
-        textAlign: 'center',
-        padding: '48px 24px',
-        maxWidth: 600,
-        margin: '40px auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 16,
-      }}
-    >
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          background: 'rgba(245, 158, 11, 0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 32,
-        }}
-      >
-        📊
-      </div>
-      <h2 style={{ fontSize: 22, fontWeight: 700 }}>No Dataset Uploaded Yet</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 450 }}>
-        Upload your restaurant's POS sales dataset (CSV or Excel) to generate custom demand forecasts, automated insights, menu engineering matrices, and basket affinity analysis.
-      </p>
-      <button
-        onClick={onUpload}
-        style={{
-          padding: '12px 24px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'var(--gradient-warm)',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 14,
-          border: 'none',
-          cursor: 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          boxShadow: 'var(--shadow-glow)',
-          marginTop: 8,
-        }}
-      >
-        <HiUpload size={18} />
-        <span>Upload POS Dataset</span>
-      </button>
-    </div>
-  )
-}
 
 function App() {
   return (
