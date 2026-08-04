@@ -21,6 +21,7 @@ import DatasetSwitcher from './components/DatasetSwitcher'
 import OnboardingModal from './components/OnboardingModal'
 import NoDatasetGate from './components/NoDatasetGate'
 import Antigravity from './components/Antigravity'
+import MagicBento from './components/MagicBento'
 
 const API_BASE = 'http://localhost:8000/api'
 

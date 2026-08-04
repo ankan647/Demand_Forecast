@@ -420,10 +420,16 @@ option {
 /* ── KPI Cards ────────────────────────────────────────────────────── */
 
 .kpi-grid {
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-intensity: 0;
+  --glow-radius: 250px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+  position: relative;
+  user-select: none;
 }
 
 .kpi-card {
@@ -433,7 +439,30 @@ option {
   padding: 20px 24px;
   position: relative;
   overflow: hidden;
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.kpi-card--border-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+      rgba(245, 158, 11, calc(var(--glow-intensity) * 0.9)) 0%,
+      rgba(245, 158, 11, calc(var(--glow-intensity) * 0.45)) 30%,
+      transparent 65%);
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
 .kpi-card::before {
