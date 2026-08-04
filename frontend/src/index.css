@@ -1,9 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
 /* ═══════════════════════════════════════════════════════════════════
    Retail Store Sales Forecast Dashboard — Design System
    Premium dark-mode design with warm food-industry palette
    ═══════════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ── CSS Custom Properties ────────────────────────────────────────── */
 

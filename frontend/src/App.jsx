@@ -22,6 +22,7 @@ import OnboardingModal from './components/OnboardingModal'
 import NoDatasetGate from './components/NoDatasetGate'
 import Antigravity from './components/Antigravity'
 import MagicBento from './components/MagicBento'
+import UserDetailsModal from './components/UserDetailsModal'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -43,6 +44,8 @@ function MainDashboard() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [uploadWizardOpen, setUploadWizardOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
+  const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false)
+  const [customUserDetails, setCustomUserDetails] = useState(null)
   const [profile, setProfile] = useState(null)
   const [activeDatasetId, setActiveDatasetId] = useState('default')
   const [userDatasets, setUserDatasets] = useState([])
@@ -213,12 +216,16 @@ function MainDashboard() {
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               {!sidebarCollapsed && (
-                <div style={{ overflow: 'hidden' }}>
+                <div
+                  onClick={() => setUserDetailsModalOpen(true)}
+                  style={{ overflow: 'hidden', cursor: 'pointer' }}
+                  title="Tap to view & edit restaurant, user & date range details"
+                >
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    {user.email}
+                    {customUserDetails?.userName || user.email}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--accent-primary-light)' }}>
-                    ● Authenticated
+                    ● Authenticated (Tap to Edit ✏️)
                   </div>
                 </div>
               )}
@@ -232,14 +239,33 @@ function MainDashboard() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setAuthModalOpen(true)}
-              className="sidebar-nav-item"
-              style={{ color: 'var(--accent-primary-light)', background: 'rgba(245, 158, 11, 0.08)' }}
-            >
-              <HiLogin className="nav-icon" />
-              {!sidebarCollapsed && <span>Sign In / Register</span>}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="sidebar-nav-item"
+                style={{ color: 'var(--accent-primary-light)', background: 'rgba(245, 158, 11, 0.08)' }}
+              >
+                <HiLogin className="nav-icon" />
+                {!sidebarCollapsed && <span>Sign In / Register</span>}
+              </button>
+              {!sidebarCollapsed && (
+                <button
+                  onClick={() => setUserDetailsModalOpen(true)}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--text-secondary)',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  View / Edit Details ✏️
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -267,12 +293,20 @@ function MainDashboard() {
               {activePage === 'channels' && <><span className="highlight">Channel</span> Performance</>}
               {activePage === 'basket' && <><span className="highlight">Basket</span> Affinity</>}
             </h1>
-            <p className="page-subtitle">
-              {profile?.restaurant_name || (user ? 'My Restaurant' : 'TK Korean Restaurant')}
-              {profile?.city ? ` • ${profile.city}` : (user ? '' : ' • Mumbai, India')}
-              {filterOptions.date_range.min && filterOptions.date_range.max
-                ? ` • ${filterOptions.date_range.min} to ${filterOptions.date_range.max}`
-                : (user ? '' : ' • Jun–Dec 2023')}
+            <p
+              className="page-subtitle"
+              onClick={() => setUserDetailsModalOpen(true)}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              title="Tap to view & edit restaurant, user & date range details"
+            >
+              <span>
+                {customUserDetails?.restaurantName || profile?.restaurant_name || (user ? 'My Restaurant' : 'TK Korean Restaurant')}
+                {' • '}
+                {customUserDetails?.userName || user?.email || 'Guest Manager'}
+                {' • '}
+                {customUserDetails?.startDate || filters.start || filterOptions.date_range.min || '2023-06-01'} to {customUserDetails?.endDate || filters.end || filterOptions.date_range.max || '2023-12-31'}
+              </span>
+              <span style={{ fontSize: 11, opacity: 0.8 }}>✏️</span>
             </p>
           </div>
 
@@ -456,6 +490,23 @@ function MainDashboard() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={() => setAuthModalOpen(false)}
+      />
+
+      {/* User & Restaurant Details Modal */}
+      <UserDetailsModal
+        isOpen={userDetailsModalOpen}
+        onClose={() => setUserDetailsModalOpen(false)}
+        userDetails={{
+          restaurantName: customUserDetails?.restaurantName || profile?.restaurant_name || (user ? 'My Restaurant' : 'TK Korean Restaurant'),
+          userName: customUserDetails?.userName || user?.email || 'manager@restaurant.com',
+          startDate: customUserDetails?.startDate || filters.start || filterOptions.date_range.min || '2023-06-01',
+          endDate: customUserDetails?.endDate || filters.end || filterOptions.date_range.max || '2023-12-31',
+        }}
+        onSave={(updated) => {
+          setCustomUserDetails(updated)
+          setProfile(prev => ({ ...(prev || {}), restaurant_name: updated.restaurantName }))
+          setFilters(prev => ({ ...prev, start: updated.startDate, end: updated.endDate }))
+        }}
       />
 
       {/* Upload Wizard */}
