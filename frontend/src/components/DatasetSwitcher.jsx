@@ -69,7 +69,7 @@ export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localh
   const activeItem = datasets.find((d) => d.id === activeDataset) || (user ? { filename: 'No Dataset Selected' } : { filename: 'Sample POS Dataset' })
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: 'relative', display: 'inline-block', zIndex: 1000 }}>
       <button
         onClick={() => setOpen(!open)}
         className="filter-select"
@@ -77,11 +77,14 @@ export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localh
           display: 'inline-flex',
           alignItems: 'center',
           gap: 8,
-          padding: '8px 14px',
+          padding: '8px 16px',
           fontSize: 13,
           fontWeight: 600,
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderColor: 'var(--border-accent)',
+          background: 'rgba(245, 158, 11, 0.08)',
+          border: '1px solid rgba(245, 158, 11, 0.4)',
+          borderRadius: 9999,
+          color: '#ffffff',
+          boxShadow: '0 0 12px rgba(245, 158, 11, 0.15)',
         }}
       >
         <HiDatabase style={{ color: 'var(--accent-primary)' }} />
@@ -92,13 +95,15 @@ export default function DatasetSwitcher({ onOpenUpload, apiBase = 'http://localh
         <div
           style={{
             position: 'absolute',
-            right: 0,
-            top: '110%',
-            zIndex: 100,
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-medium)',
+            left: 0,
+            top: '115%',
+            zIndex: 9999,
+            background: 'rgba(18, 22, 30, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-lg)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
             minWidth: 240,
             padding: '6px 0',
             animation: 'fadeIn 0.15s ease-out',

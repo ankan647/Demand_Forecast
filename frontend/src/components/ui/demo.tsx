@@ -1,11 +1,13 @@
-import { Component } from "@/components/ui/sign-in-card-2";
+import { Home, User, Briefcase, FileText } from 'lucide-react'
+import { NavBar } from "@/components/ui/tubelight-navbar"
 
-const DemoOne = () => {
-  return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <Component />
-    </div>
-  );
-};
+export function NavBarDemo() {
+  const navItems = [
+    { name: 'Home', url: '#', icon: Home },
+    { name: 'About', url: '#', icon: User },
+    { name: 'Projects', url: '#', icon: Briefcase },
+    { name: 'Resume', url: '#', icon: FileText }
+  ]
 
-export { DemoOne };
+  return <NavBar items={navItems} />
+}

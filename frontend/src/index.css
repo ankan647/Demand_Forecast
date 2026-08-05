@@ -9,6 +9,15 @@
 /* ── CSS Custom Properties ────────────────────────────────────────── */
 
 :root {
+  /* shadcn/ui color variables — matching warm orange / amber theme */
+  --background: #0c0f14;
+  --foreground: #f1f5f9;
+  --primary: #f59e0b;
+  --primary-foreground: #000000;
+  --muted: rgba(245, 158, 11, 0.15);
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.12);
+
   /* Background tones — deep charcoal with warm undertone */
   --bg-primary: #0c0f14;
   --bg-secondary: #12161e;
@@ -295,6 +304,8 @@ body {
   margin-bottom: 28px;
   gap: 20px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 100;
 }
 
 .page-title {
@@ -343,35 +354,48 @@ option {
 
 .filter-bar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+  background: rgba(18, 22, 30, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 100;
 }
 
 .filter-select,
 .filter-input {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px !important;
   color: var(--text-primary);
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: 13px;
+  font-weight: 500;
   font-family: var(--font-sans);
   transition: all var(--transition-fast);
   cursor: pointer;
   outline: none;
-  min-width: 130px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .filter-select:hover,
 .filter-input:hover {
-  border-color: var(--border-medium);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .filter-select:focus,
 .filter-input:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 }
 
 .filter-select option {

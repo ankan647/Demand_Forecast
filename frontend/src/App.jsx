@@ -21,8 +21,9 @@ import DatasetSwitcher from './components/DatasetSwitcher'
 import OnboardingModal from './components/OnboardingModal'
 import NoDatasetGate from './components/NoDatasetGate'
 import Antigravity from './components/Antigravity'
-import MagicBento from './components/MagicBento'
 import UserDetailsModal from './components/UserDetailsModal'
+import { LayoutDashboard, Package, TrendingUp, Lightbulb, AlertTriangle, Grid, Globe, Link2 } from 'lucide-react'
+import { NavBar } from './components/ui/tubelight-navbar'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -35,6 +36,17 @@ const NAV_ITEMS = [
   { id: 'menu-matrix', label: 'Menu Matrix', icon: HiViewGrid },
   { id: 'channels', label: 'Channels', icon: HiGlobe },
   { id: 'basket', label: 'Basket Affinity', icon: HiLink },
+]
+
+const TUBELIGHT_NAV_ITEMS = [
+  { name: 'Dashboard', url: '#dashboard', icon: LayoutDashboard },
+  { name: 'Item Analytics', url: '#items', icon: Package },
+  { name: 'Forecast', url: '#forecast', icon: TrendingUp },
+  { name: 'Insights', url: '#insights', icon: Lightbulb },
+  { name: 'Alerts', url: '#alerts', icon: AlertTriangle },
+  { name: 'Menu Matrix', url: '#menu-matrix', icon: Grid },
+  { name: 'Channels', url: '#channels', icon: Globe },
+  { name: 'Basket Affinity', url: '#basket', icon: Link2 },
 ]
 
 function MainDashboard() {
@@ -329,7 +341,10 @@ function MainDashboard() {
                 background: 'var(--gradient-warm)',
                 color: '#fff',
                 border: 'none',
+                borderRadius: 9999,
                 fontWeight: 700,
+                padding: '8px 18px',
+                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
               }}
             >
               <HiUpload size={14} />

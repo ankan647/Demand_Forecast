@@ -1,6 +1,4 @@
-'use client'
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight } from 'lucide-react';
 
@@ -530,9 +528,9 @@ export function Component({
                     Remember me
                   </label>
 
-                  <Link href="/forgot-password" style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.65)', textDecoration: 'none' }}>
+                  <a href="#forgot-password" onClick={(e) => e.preventDefault()} style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.65)', textDecoration: 'none' }}>
                     Forgot password?
-                  </Link>
+                  </a>
                 </div>
 
                 {/* Submit Button */}
