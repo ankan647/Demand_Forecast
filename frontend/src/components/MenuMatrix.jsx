@@ -72,24 +72,24 @@ export default function MenuMatrix({ apiBase, buildQuery, token }) {
           </div>
           <ResponsiveContainer width="100%" height={480}>
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
               <XAxis
                 dataKey="x"
                 type="number"
                 name="Units Sold"
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+                tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
+                axisLine={{ stroke: 'var(--border-subtle)' }}
                 tickLine={false}
-                label={{ value: 'Popularity (Units Sold)', position: 'bottom', fill: '#64748b', fontSize: 12 }}
+                label={{ value: 'Popularity (Units Sold)', position: 'bottom', fill: 'var(--text-tertiary)', fontSize: 12 }}
               />
               <YAxis
                 dataKey="y"
                 type="number"
                 name="Revenue / Unit"
-                tick={{ fill: '#64748b', fontSize: 11 }}
+                tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
-                label={{ value: 'Profitability (₹/Unit)', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 12 }}
+                label={{ value: 'Profitability (₹/Unit)', angle: -90, position: 'insideLeft', fill: 'var(--text-tertiary)', fontSize: 12 }}
                 tickFormatter={v => `₹${v.toFixed(0)}`}
               />
               <ZAxis dataKey="z" range={[40, 300]} />
@@ -206,22 +206,22 @@ function MatrixTooltip({ active, payload }) {
   const d = payload[0].payload
   return (
     <div style={{
-      background: 'rgba(12, 15, 20, 0.95)',
-      border: `1px solid ${QUADRANT_COLORS[d.quadrant] || 'rgba(255,255,255,0.1)'}`,
+      background: 'var(--bg-secondary)',
+      border: `1px solid ${QUADRANT_COLORS[d.quadrant] || 'var(--border-medium)'}`,
       borderRadius: 10,
       padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--shadow-md)',
       maxWidth: 260,
     }}>
-      <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13 }}>{d.product}</p>
+      <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>{d.product}</p>
       <p style={{ color: 'var(--text-tertiary)', fontSize: 11, marginBottom: 6 }}>{d.category}</p>
       <p style={{ color: QUADRANT_COLORS[d.quadrant], fontSize: 12, fontWeight: 600 }}>
         {QUADRANT_EMOJI[d.quadrant]} {d.quadrant}
       </p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
         Units: {d.x.toLocaleString('en-IN')} • ₹{d.y.toFixed(2)}/unit
       </p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
         Total Revenue: ₹{d.total_revenue.toLocaleString('en-IN')}
       </p>
     </div>

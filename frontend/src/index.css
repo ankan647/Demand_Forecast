@@ -8,7 +8,7 @@
 
 /* ── CSS Custom Properties ────────────────────────────────────────── */
 
-:root {
+:root, [data-theme="dark"], html.dark {
   /* shadcn/ui color variables — matching warm orange / amber theme */
   --background: #0c0f14;
   --foreground: #f1f5f9;
@@ -86,6 +86,153 @@
   --chart-6: #f97316;
   --chart-7: #06b6d4;
   --chart-8: #ec4899;
+}
+
+/* ── Light Mode Color Theme ───────────────────────────────────────── */
+
+[data-theme="light"], html.light, body.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #f59e0b; /* Orange accent stays identical in light mode */
+  --primary-foreground: #ffffff;
+  --muted: rgba(245, 158, 11, 0.12);
+  --muted-foreground: #64748b;
+  --border: rgba(0, 0, 0, 0.12);
+
+  /* Background tones — crisp light mode */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-sidebar: #ffffff;
+  --bg-input: #f1f5f9;
+
+  /* Warm accent palette — amber/orange for food industry stays intact */
+  --accent-primary: #f59e0b; /* Orange accent intact */
+  --accent-primary-light: #d97706; /* High contrast amber on light background */
+  --accent-primary-dark: #b45309;
+  --accent-secondary: #dc2626;
+  --accent-tertiary: #7c3aed;
+  --accent-success: #059669;
+  --accent-info: #2563eb;
+
+  /* Gradient combos */
+  --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+  --gradient-cool: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-accent: #d97706;
+
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.15);
+  --border-accent: rgba(245, 158, 11, 0.4);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(245, 158, 11, 0.18);
+
+  --chart-1: #f59e0b;
+  --chart-2: #2563eb;
+  --chart-3: #059669;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
+  --chart-6: #ea580c;
+  --chart-7: #0891b2;
+  --chart-8: #db2777;
+}
+
+[data-theme="light"] .filter-bar {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .filter-select,
+[data-theme="light"] .filter-input {
+  background: #f1f5f9;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+[data-theme="light"] .filter-select:hover,
+[data-theme="light"] .filter-input:hover {
+  background: #e2e8f0;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .antigravity-bg {
+  opacity: 0.25;
+}
+
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .sidebar-nav-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .glass-card,
+[data-theme="light"] .kpi-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .kpi-card:hover {
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.18);
+}
+
+[data-theme="light"] .data-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .insight-card,
+[data-theme="light"] .alert-card,
+[data-theme="light"] .quadrant-count-card,
+[data-theme="light"] .pair-card {
+  background: #f8fafc;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .insight-card:hover,
+[data-theme="light"] .alert-card:hover,
+[data-theme="light"] .pair-card:hover {
+  background: #f1f5f9;
+}
+
+[data-theme="light"] .tabs {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .tab:hover {
+  color: #0f172a;
+}
+
+[data-theme="light"] .tab.active {
+  background: rgba(245, 158, 11, 0.2);
+  color: #d97706;
 }
 
 /* ── Reset & Base ─────────────────────────────────────────────────── */

@@ -314,10 +314,10 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                 >
                   <HiPencilAlt color="#ffffff" size={22} />
                 </motion.div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', margin: '0 0 4px 0', letterSpacing: '-0.01em' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0', letterSpacing: '-0.01em' }}>
                   User & Restaurant Details
                 </h2>
-                <p style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.6)', margin: 0 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
                   View and update your stored account details, restaurant profile, and date range.
                 </p>
               </div>
@@ -349,7 +349,7 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                 {/* Restaurant Name */}
                 <div>
                   <label style={labelStyle}>
-                    <HiOfficeBuilding style={{ color: '#F66524' }} />
+                    <HiOfficeBuilding style={{ color: 'var(--accent-primary)' }} />
                     Restaurant Name
                   </label>
                   <input
@@ -363,15 +363,15 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                     style={{
                       width: '100%',
                       height: 44,
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      border: focusedInput === 'restaurant' ? '1px solid #F66524' : '1px solid rgba(255, 255, 255, 0.12)',
+                      backgroundColor: 'var(--bg-input)',
+                      border: focusedInput === 'restaurant' ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
                       borderRadius: 10,
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: 14,
                       paddingLeft: 14,
                       paddingRight: 14,
                       outline: 'none',
-                      boxShadow: focusedInput === 'restaurant' ? '0 0 12px rgba(246, 101, 36, 0.3)' : 'none',
+                      boxShadow: focusedInput === 'restaurant' ? '0 0 12px rgba(245, 158, 11, 0.3)' : 'none',
                       transition: 'all 0.2s ease',
                     }}
                   />
@@ -394,15 +394,15 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                     style={{
                       width: '100%',
                       height: 44,
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      border: focusedInput === 'user' ? '1px solid #F66524' : '1px solid rgba(255, 255, 255, 0.12)',
+                      backgroundColor: 'var(--bg-input)',
+                      border: focusedInput === 'user' ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
                       borderRadius: 10,
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: 14,
                       paddingLeft: 14,
                       paddingRight: 14,
                       outline: 'none',
-                      boxShadow: focusedInput === 'user' ? '0 0 12px rgba(246, 101, 36, 0.3)' : 'none',
+                      boxShadow: focusedInput === 'user' ? '0 0 12px rgba(245, 158, 11, 0.3)' : 'none',
                       transition: 'all 0.2s ease',
                     }}
                   />
@@ -425,15 +425,15 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                       style={{
                         width: '100%',
                         height: 44,
-                        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                        border: focusedInput === 'start' ? '1px solid #F66524' : '1px solid rgba(255, 255, 255, 0.12)',
+                        backgroundColor: 'var(--bg-input)',
+                        border: focusedInput === 'start' ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
                         borderRadius: 10,
-                        color: '#ffffff',
+                        color: 'var(--text-primary)',
                         fontSize: 13,
                         paddingLeft: 12,
                         paddingRight: 12,
                         outline: 'none',
-                        boxShadow: focusedInput === 'start' ? '0 0 12px rgba(246, 101, 36, 0.3)' : 'none',
+                        boxShadow: focusedInput === 'start' ? '0 0 12px rgba(245, 158, 11, 0.3)' : 'none',
                         transition: 'all 0.2s ease',
                       }}
                     />
@@ -454,15 +454,15 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                       style={{
                         width: '100%',
                         height: 44,
-                        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                        border: focusedInput === 'end' ? '1px solid #F66524' : '1px solid rgba(255, 255, 255, 0.12)',
+                        backgroundColor: 'var(--bg-input)',
+                        border: focusedInput === 'end' ? '1px solid var(--accent-primary)' : '1px solid var(--border-medium)',
                         borderRadius: 10,
-                        color: '#ffffff',
+                        color: 'var(--text-primary)',
                         fontSize: 13,
                         paddingLeft: 12,
                         paddingRight: 12,
                         outline: 'none',
-                        boxShadow: focusedInput === 'end' ? '0 0 12px rgba(246, 101, 36, 0.3)' : 'none',
+                        boxShadow: focusedInput === 'end' ? '0 0 12px rgba(245, 158, 11, 0.3)' : 'none',
                         transition: 'all 0.2s ease',
                       }}
                     />
@@ -480,11 +480,11 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                       flex: 1,
                       height: 44,
                       borderRadius: 10,
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      color: 'rgba(255, 255, 255, 0.8)',
+                      backgroundColor: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border-medium)',
                       fontWeight: 600,
-                      fontSize: 13,
+                      fontSize: 14,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}
@@ -496,20 +496,20 @@ export default function UserDetailsModal({ isOpen, onClose, userDetails, onSave 
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     style={{
-                      flex: 1.5,
+                      flex: 1,
                       height: 44,
                       borderRadius: 10,
-                      backgroundColor: '#ffffff',
-                      color: '#000000',
+                      background: 'var(--gradient-warm)',
+                      color: '#ffffff',
                       border: 'none',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       fontSize: 14,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 6,
-                      boxShadow: '0 4px 15px rgba(255, 255, 255, 0.15)',
+                      boxShadow: 'var(--shadow-glow)',
                       transition: 'all 0.2s ease',
                     }}
                   >
@@ -532,6 +532,6 @@ const labelStyle = {
   gap: 6,
   fontSize: 12,
   fontWeight: 600,
-  color: 'rgba(255, 255, 255, 0.7)',
+  color: 'var(--text-secondary)',
   marginBottom: 6,
 }

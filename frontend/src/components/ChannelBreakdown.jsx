@@ -190,16 +190,16 @@ function ChannelTooltip({ active, payload, total }) {
   const d = payload[0].payload
   return (
     <div style={{
-      background: 'rgba(12, 15, 20, 0.95)',
-      border: `1px solid ${CHANNEL_COLORS[d.channel] || 'rgba(255,255,255,0.1)'}`,
+      background: 'var(--bg-secondary)',
+      border: `1px solid ${CHANNEL_COLORS[d.channel] || 'var(--border-medium)'}`,
       borderRadius: 10,
       padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--shadow-md)',
     }}>
       <p style={{ color: CHANNEL_COLORS[d.channel], fontWeight: 600, fontSize: 14 }}>{d.channel}</p>
-      <p style={{ color: '#f1f5f9', fontSize: 12 }}>Revenue: ₹{d.revenue.toLocaleString('en-IN')}</p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>Share: {d.revenue_pct}%</p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>Orders: {d.orders.toLocaleString('en-IN')}</p>
+      <p style={{ color: 'var(--text-primary)', fontSize: 12 }}>Revenue: ₹{d.revenue.toLocaleString('en-IN')}</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>Share: {d.revenue_pct}%</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>Orders: {d.orders.toLocaleString('en-IN')}</p>
     </div>
   )
 }
@@ -209,17 +209,17 @@ function CategoryTooltip({ active, payload }) {
   const d = payload[0].payload
   return (
     <div style={{
-      background: 'rgba(12, 15, 20, 0.95)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'var(--bg-secondary)',
+      border: '1px solid var(--border-medium)',
       borderRadius: 10,
       padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--shadow-md)',
     }}>
-      <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14 }}>{d.category}</p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>
+      <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14 }}>{d.category}</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
         Revenue: ₹{d.revenue.toLocaleString('en-IN')} ({d.revenue_pct}%)
       </p>
-      <p style={{ color: '#94a3b8', fontSize: 12 }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
         Units: {d.units.toLocaleString('en-IN')}
       </p>
     </div>

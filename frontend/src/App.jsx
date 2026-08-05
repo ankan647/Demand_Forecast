@@ -24,6 +24,7 @@ import Antigravity from './components/Antigravity'
 import UserDetailsModal from './components/UserDetailsModal'
 import { LayoutDashboard, Package, TrendingUp, Lightbulb, AlertTriangle, Grid, Globe, Link2 } from 'lucide-react'
 import { NavBar } from './components/ui/tubelight-navbar'
+import Switch from './components/ui/sky-toggle'
 
 const API_BASE = 'http://localhost:8000/api'
 
@@ -61,6 +62,35 @@ function MainDashboard() {
   const [profile, setProfile] = useState(null)
   const [activeDatasetId, setActiveDatasetId] = useState('default')
   const [userDatasets, setUserDatasets] = useState([])
+
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('app-theme')
+    if (saved) return saved
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light'
+    }
+    return 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    if (theme === 'light') {
+      document.documentElement.classList.add('light')
+      document.documentElement.classList.remove('dark')
+      document.body.classList.add('light')
+      document.body.classList.remove('dark')
+    } else {
+      document.documentElement.classList.add('dark')
+      document.documentElement.classList.remove('light')
+      document.body.classList.add('dark')
+      document.body.classList.remove('light')
+    }
+    localStorage.setItem('app-theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))
+  }
 
   const [filters, setFilters] = useState({
     category: '',
@@ -322,79 +352,101 @@ function MainDashboard() {
             </p>
           </div>
 
-          <div className="filter-bar">
-            {/* Dataset Switcher Dropdown */}
-            <DatasetSwitcher
-              apiBase={API_BASE}
-              onOpenUpload={handleOpenUpload}
-              onDatasetChanged={(id) => setActiveDatasetId(id)}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div className="filter-bar">
+              {/* Dataset Switcher Dropdown */}
+              <DatasetSwitcher
+                apiBase={API_BASE}
+                onOpenUpload={handleOpenUpload}
+                onDatasetChanged={(id) => setActiveDatasetId(id)}
+              />
 
-            {/* Quick Upload Button */}
-            <button
-              onClick={handleOpenUpload}
-              className="filter-select"
+              {/* Quick Upload Button */}
+              <button
+                onClick={handleOpenUpload}
+                className="filter-select"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'var(--gradient-warm)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 9999,
+                  fontWeight: 700,
+                  padding: '8px 18px',
+                  boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
+                }}
+              >
+                <HiUpload size={14} />
+                <span>Upload CSV</span>
+              </button>
+
+              {/* Category Filter */}
+              <select
+                className="filter-select"
+                value={filters.category}
+                onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
+              >
+                <option value="">All Categories</option>
+                {filterOptions.categories
+                  .filter(c => c !== 'Custom Amount')
+                  .map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+              </select>
+
+              {/* Channel Filter */}
+              <select
+                className="filter-select"
+                value={filters.channel}
+                onChange={e => setFilters(f => ({ ...f, channel: e.target.value }))}
+              >
+                <option value="">All Channels</option>
+                {filterOptions.channels.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+
+              <input
+                className="filter-input"
+                type="date"
+                value={filters.start}
+                min={filterOptions.date_range.min}
+                max={filterOptions.date_range.max}
+                onChange={e => setFilters(f => ({ ...f, start: e.target.value }))}
+                placeholder="Start Date"
+              />
+              <input
+                className="filter-input"
+                type="date"
+                value={filters.end}
+                min={filterOptions.date_range.min}
+                max={filterOptions.date_range.max}
+                onChange={e => setFilters(f => ({ ...f, end: e.target.value }))}
+                placeholder="End Date"
+              />
+            </div>
+
+            {/* Light / Dark Mode Toggle Switch */}
+            <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6,
-                background: 'var(--gradient-warm)',
-                color: '#fff',
-                border: 'none',
+                justifyContent: 'center',
+                padding: '4px 10px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: 9999,
-                fontWeight: 700,
-                padding: '8px 18px',
-                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
+                boxShadow: 'var(--shadow-sm)',
               }}
+              title={`Currently in ${theme} mode. Click to toggle.`}
             >
-              <HiUpload size={14} />
-              <span>Upload CSV</span>
-            </button>
-
-            {/* Category Filter */}
-            <select
-              className="filter-select"
-              value={filters.category}
-              onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
-            >
-              <option value="">All Categories</option>
-              {filterOptions.categories
-                .filter(c => c !== 'Custom Amount')
-                .map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-            </select>
-
-            {/* Channel Filter */}
-            <select
-              className="filter-select"
-              value={filters.channel}
-              onChange={e => setFilters(f => ({ ...f, channel: e.target.value }))}
-            >
-              <option value="">All Channels</option>
-              {filterOptions.channels.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-
-            <input
-              className="filter-input"
-              type="date"
-              value={filters.start}
-              min={filterOptions.date_range.min}
-              max={filterOptions.date_range.max}
-              onChange={e => setFilters(f => ({ ...f, start: e.target.value }))}
-              placeholder="Start Date"
-            />
-            <input
-              className="filter-input"
-              type="date"
-              value={filters.end}
-              min={filterOptions.date_range.min}
-              max={filterOptions.date_range.max}
-              onChange={e => setFilters(f => ({ ...f, end: e.target.value }))}
-              placeholder="End Date"
-            />
+              <Switch
+                checked={theme === 'dark'}
+                onChange={toggleTheme}
+              />
+            </div>
           </div>
         </header>
 

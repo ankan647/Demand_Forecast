@@ -162,15 +162,15 @@ export default function ForecastChart({ apiBase, token }) {
                 <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
             <XAxis
               dataKey="week"
-              tick={{ fill: '#64748b', fontSize: 11 }}
-              axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+              tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
+              axisLine={{ stroke: 'var(--border-subtle)' }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: '#64748b', fontSize: 11 }}
+              tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={v => metric === 'revenue' ? `₹${(v / 1000).toFixed(0)}k` : v}
@@ -194,7 +194,7 @@ export default function ForecastChart({ apiBase, token }) {
               stroke="#f59e0b"
               strokeWidth={2.5}
               dot={{ fill: '#f59e0b', r: 3, strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: '#f59e0b', stroke: '#0c0f14', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: '#f59e0b', stroke: 'var(--bg-primary)', strokeWidth: 2 }}
               name="Actual"
               connectNulls={false}
             />
@@ -205,30 +205,31 @@ export default function ForecastChart({ apiBase, token }) {
               dataKey="predicted"
               stroke="#8b5cf6"
               strokeWidth={2.5}
-              strokeDasharray="6 4"
+              strokeDasharray="5 5"
               dot={{ fill: '#8b5cf6', r: 3, strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: '#8b5cf6', stroke: '#0c0f14', strokeWidth: 2 }}
-              name="Forecast"
+              activeDot={{ r: 5, fill: '#8b5cf6', stroke: 'var(--bg-primary)', strokeWidth: 2 }}
+              name="Predicted"
               connectNulls={false}
             />
 
-            {/* Boundary line */}
+            {/* Boundary marker line */}
             {boundaryWeek && (
               <ReferenceLine
                 x={boundaryWeek}
-                stroke="rgba(255,255,255,0.15)"
-                strokeDasharray="4 4"
+                stroke="#ef4444"
+                strokeDasharray="3 3"
                 label={{
-                  value: 'Forecast →',
+                  value: 'Forecast Start ➔',
                   position: 'top',
-                  fill: '#64748b',
+                  fill: '#ef4444',
                   fontSize: 11,
+                  fontWeight: 600,
                 }}
               />
             )}
 
             <Legend
-              wrapperStyle={{ paddingTop: 10, fontSize: 12 }}
+              wrapperStyle={{ paddingTop: 10, fontSize: 12, color: 'var(--text-secondary)' }}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -249,13 +250,13 @@ function ForecastTooltip({ active, payload, label, metric }) {
 
   return (
     <div style={{
-      background: 'rgba(12, 15, 20, 0.95)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'var(--bg-secondary)',
+      border: '1px solid var(--border-medium)',
       borderRadius: 10,
       padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--shadow-md)',
     }}>
-      <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
+      <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
         Week of {label}
       </p>
       {payload.map((p, i) => {
@@ -271,7 +272,7 @@ function ForecastTooltip({ active, payload, label, metric }) {
       })}
       {/* Show confidence range */}
       {payload.find(p => p.dataKey === 'range' && p.value) && (
-        <p style={{ color: '#a78bfa', fontSize: 11, marginTop: 4 }}>
+        <p style={{ color: '#8b5cf6', fontSize: 11, marginTop: 4 }}>
           Range: {metric === 'revenue' ? '₹' : ''}
           {payload.find(p => p.dataKey === 'range').value[0].toLocaleString('en-IN')}
           {' — '}

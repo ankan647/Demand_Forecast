@@ -40,7 +40,7 @@ export default function NoDatasetGate({
       >
         {icon}
       </div>
-      <h2 style={{ fontSize: 22, fontWeight: 700 }}>{title}</h2>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
       <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 450 }}>
         {description}
       </p>

@@ -68,16 +68,16 @@ export default function RevenueTrendChart({ apiBase, buildQuery, token }) {
               <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
           <XAxis
             dataKey="date"
-            tick={{ fill: '#64748b', fontSize: 11 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+            tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
+            axisLine={{ stroke: 'var(--border-subtle)' }}
             tickLine={false}
             interval={granularity === 'daily' ? Math.floor(data.length / 8) : 'preserveStartEnd'}
           />
           <YAxis
-            tick={{ fill: '#64748b', fontSize: 11 }}
+            tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`}
@@ -91,7 +91,7 @@ export default function RevenueTrendChart({ apiBase, buildQuery, token }) {
             fill="url(#revenueGrad)"
             name="Revenue"
             dot={false}
-            activeDot={{ r: 5, fill: '#f59e0b', stroke: '#0c0f14', strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: '#f59e0b', stroke: 'var(--bg-primary)', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -103,13 +103,13 @@ function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'rgba(12, 15, 20, 0.95)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'var(--bg-secondary)',
+      border: '1px solid var(--border-medium)',
       borderRadius: 10,
       padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--shadow-md)',
     }}>
-      <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{label}</p>
+      <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color, fontSize: 12, margin: '2px 0' }}>
           {p.name}: ₹{Number(p.value).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
