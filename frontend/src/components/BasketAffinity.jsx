@@ -51,16 +51,16 @@ export default function BasketAffinity({ apiBase, buildQuery, token }) {
           {data.pairs.map((pair, i) => (
             <div key={i} className="pair-card" style={{ animationDelay: `${i * 40}ms` }}>
               <div className="pair-items">
-                <div style={{ flex: 1 }}>
-                  <div className="pair-item-name">{pair.item_a}</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{pair.category_a}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="pair-item-name" title={pair.item_a}>{pair.item_a}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pair.category_a}</div>
                 </div>
                 <div className="pair-connector">
                   <HiLink />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div className="pair-item-name">{pair.item_b}</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{pair.category_b}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="pair-item-name" title={pair.item_b}>{pair.item_b}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pair.category_b}</div>
                 </div>
               </div>
               <div className="pair-metrics">

@@ -1011,6 +1011,7 @@ option {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
   transition: all var(--transition-fast);
+  overflow: hidden;
 }
 
 .pair-card:hover {
@@ -1023,16 +1024,18 @@ option {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  width: 100%;
 }
 
 .pair-item-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
 }
 
 .pair-connector {
