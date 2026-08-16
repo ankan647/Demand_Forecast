@@ -9,7 +9,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'next/link': fileURLToPath(new URL('./src/components/ui/LinkShim.tsx', import.meta.url)),
     },
   },
 })

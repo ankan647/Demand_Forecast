@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -44,7 +43,7 @@ export function NavBar({ items, className, activeTab: propActiveTab, onTabChange
           const isActive = activeTab === item.name
 
           return (
-            <Link
+            <a
               key={item.name}
               href={item.url || '#'}
               onClick={(e: React.MouseEvent) => {
@@ -79,7 +78,7 @@ export function NavBar({ items, className, activeTab: propActiveTab, onTabChange
                   </div>
                 </motion.div>
               )}
-            </Link>
+            </a>
           )
         })}
       </div>
